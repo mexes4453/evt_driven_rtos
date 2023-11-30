@@ -12,7 +12,7 @@ void UTILS_PrintTxt(char *msg)
 void UTILS_PrintInt(uint64_t nbr)
 {
     char chr;
-    if (nbr < 10)
+    if (nbr >= 10)
     {
         UTILS_PrintInt(nbr / 10);
     }

@@ -12,7 +12,8 @@ STD = c89
 DEBUG = 
 VALGRIND =
 VAL =
-CFLAGS = -Werror -Wall -Wextra -std=$(STD) -pthread -lrt
+CFLAGS = -Werror -Wall -Wextra -std=$(STD) -pthread -lrt 
+CFLAGS += -D__thread__
 INCLUDES = -I./
 
 #=== DEBUG ====

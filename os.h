@@ -1,16 +1,18 @@
 #ifndef OS_H
 #define OS_H
 
+#define _GNU_SOURCE
 #include <pthread.h>
 #include <time.h>
+#include <sched.h>
 #include "utils.h"
 
 
 typedef void *(*t_osThreadhandler) (void *);
 
 int    OS_CreateThread(pthread_t *thread, const pthread_attr_t *attr,
-                                           t_osThreadhandler func,
-                                           void *arg);
+                       t_osThreadhandler func,
+                       void *arg);
 
 
 void    OS_Sequencer(void);
