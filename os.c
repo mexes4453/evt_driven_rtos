@@ -15,6 +15,8 @@ int OS_CreateThread(pthread_t *thread, const pthread_attr_t *attr,
                     void *arg)
 {
     int res = pthread_create(thread, attr, func, arg);
+    if  (res != 0)
+        PERROR("create_thread", 1);
 
     return (res);
 }

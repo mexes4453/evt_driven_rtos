@@ -15,7 +15,7 @@
 typedef void *(*t_osThreadhandler) (void *);
 typedef struct
 {
-    int threadIdx;
+    int         idx;
     pthread_t   tid;
 
 }   t_osThreadParams;
@@ -24,7 +24,6 @@ int    OS_CreateThread(pthread_t *thread, const pthread_attr_t *attr,
                        t_osThreadhandler func,
                        void *arg);
 
-//void    OS_InitSchedInterrupt(void);
 void    OS_InitSchedInterrupt(struct sigaction *sa);
 void    OS_Sequencer(void);
 void    OS_ShowThreadInfo(void);
