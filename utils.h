@@ -15,6 +15,8 @@
     perror(msg); exit(errNo); \
 }\
 
+
+/* FUNCTIONS */
 void UTILS_PrintTxt(char *msg);
 void UTILS_PrintInt(uint64_t nbr);
 

@@ -1,17 +1,12 @@
-#include <string.h>
+
 #include "clk.h"
 
+static timer_t      timerId;
+extern int          exitSig;
+extern int          execCounter;
 
-void CLK_Signal( void *ptrThread)
+int CLK_InitTimer(struct sigevent *sigev)
 {
-    if (ptrThread)
-        write(1, "nothing\n", 8 );
-}
-
-
-int CLK_TimerInit(struct sigevent *sigev)
-{
-    timer_t             timerId;
     struct itimerspec   ts;
     int res;
 
@@ -20,9 +15,17 @@ int CLK_TimerInit(struct sigevent *sigev)
     ts.it_value.tv_sec = 0;
     ts.it_value.tv_nsec = (CLK_NS / CLK_CYCLE_MS) - 1;
 
+    bzero(sigev, sizeof(struct sigevent));
+    sigev->sigev_notify = SIGEV_SIGNAL;
+    sigev->sigev_signo = SIGALRM;
+
     /* create a timer */
     res = timer_create(CLK_ID, sigev, &timerId);
     if (res < 0) PERROR("timer_create", -2);
+
+    UTILS_PrintTxt("timerId: ");
+    UTILS_PrintInt((uint64_t)timerId);
+    UTILS_PrintTxt("\n");
     
     /* arm the timer */
     res = timer_settime(timerId, 0, &ts, NULL);
@@ -32,30 +35,56 @@ int CLK_TimerInit(struct sigevent *sigev)
 }
 
 
+void    CLK_DisableTimer(void)
+{
+    uint64_t l_timerId = (uint64_t)timerId;
+    UTILS_PrintTxt("timerId: ");
+    UTILS_PrintInt(l_timerId);
+    UTILS_PrintTxt("\n");
+    int res = timer_delete(timerId);
+    if (res < 0) PERROR("timer_delete", -127);
+    UTILS_PrintTxt("disabled Timer\n");
+}
+
 void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
 {
-    /* call the sequencer within here */
-    if (sig == SIGALRM) 
+    
+    switch (sig)
     {
-        printf("handling the sig info interrupt \n");
-        CLK_ShowTimeMs();
+        case SIGALRM: /* call the sequencer within here */
+        {
+            UTILS_PrintTxt("handling the sig info interrupt \n");
+            CLK_ShowTimeMs();
+            execCounter++;
+            break ;
+        }
+        case SIGINT:
+        {
+            exitSig = 1;
+            break ;
+        }
+        default:
+        {
+        }
     }
-
     if (siginfo && contextInfo)
     {
-        printf("Sign info: %d\n", siginfo->si_signo);
+        UTILS_PrintTxt("Sign info: ");
+        UTILS_PrintInt((uint64_t)siginfo->si_signo);
+        UTILS_PrintTxt("\n");
     }
-    
 }
 
 
 void    CLK_ShowTimeMs(void)
 {
     struct timespec ts;
-    /* bzero(&ts, sizeof(struct timespec)); */
+    bzero(&ts, sizeof(struct timespec));
 
-    int res = clock_gettime(CLOCK_MONOTONIC,  &ts);
+    int res = clock_gettime(CLK_ID,  &ts);
     if (res < 0) PERROR("clock_gettime\n", -2);
 
-    printf("Time: %lds\n", ts.tv_sec);
+    UTILS_PrintTxt("Time: ");
+    UTILS_PrintInt((uint64_t)ts.tv_sec);
+    UTILS_PrintTxt("s \n");
 }

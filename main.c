@@ -1,66 +1,58 @@
 #include "os.h"
 #include "clk.h"
-#include <sched.h>
+#include "app.h"
 
-/* FUNCTION */
-
-void    *hello(void *)
-{
-    while (1)
-    {
-        UTILS_PrintTxt("Hello my friend\n");
-        OS_ShowThreadInfo();
-    }
-    return (NULL);
-}
-
-
-
-
-
-void    callFunc(t_osThreadhandler func)
-{
-    void    *nullPtr = func(NULL);
-    UTILS_PrintTxt("calling from main thread\n");
-    if (nullPtr){};
-}
-
-
+int exitSig = 0;
+int execCounter = 0;
 int main (void)
 {
-    struct sigaction    sa;
-    struct sigevent     sigevt;
+    static struct sigaction     sa;
+    struct sigevent             sigevt;
+    
+    
+
 #ifdef __thread__
-    cpu_set_t           cpuSet;
-    pthread_t           greetThread;
+    //cpu_set_t           cpuSet;
+    pthread_t           threadBlue;
+    t_osThreadParams    threadParamsBlue;
 #endif 
 
-    sigemptyset(&sa.sa_mask);
-    sa.sa_sigaction =  CLK_SigHandler;
-    sa.sa_flags = SA_SIGINFO;
+    OS_InitSchedInterrupt(&sa);
+    CLK_InitTimer(&sigevt);
+    bzero(&threadParamsBlue, sizeof(t_osThreadParams));
 
-    sigevt.sigev_notify = SIGEV_SIGNAL;
-    sigevt.sigev_signo = SIGALRM;
-
-    sigaction(SIGALRM, &sa, NULL);
-    CLK_TimerInit(&sigevt);
 
 #ifdef __thread__
-    /* callFunc(hello); */
-    CPU_ZERO(&cpuSet);
-    CPU_SET(1, &cpuSet);
-    if (OS_CreateThread(&greetThread, NULL, hello, NULL) < 0)
+    /* OS_CallFunc(hello); */
+    //CPU_ZERO(&cpuSet);
+    //CPU_SET(1, &cpuSet);
+    threadParamsBlue.tid = OS_CreateThread(&threadBlue, NULL, &APP_TaskBlue, NULL);
+    if  (threadParamsBlue.tid > 0)
         PERROR("create thread", -1);
+    threadParamsBlue.tid = threadBlue;
 
-    sched_setaffinity(greetThread, sizeof(cpuSet), &cpuSet);
-    /*  wait for all threads to join back the main before exiting. */
-    /*  The threads are not expected to rejoin as they should run forever. */
-    pthread_join(greetThread, NULL);
+    //sched_setaffinity(threadBlue, sizeof(cpuSet), &cpuSet);
 #endif 
 
     while (1)
     {
         pause();
+        if (exitSig)
+        {
+#ifdef __thread__
+            pthread_kill(threadBlue, SIGKILL);
+#endif 
+            CLK_DisableTimer();
+            printf("Interrupt count: %d\n", execCounter);
+            printf("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
+            break ;
+        }
     }
+
+#ifdef __thread__
+    /*  wait for all threads to join back the main before exiting. */
+    /*  The threads are not expected to rejoin as they should run forever. */
+    pthread_join(threadBlue, NULL);
+#endif 
     return (0);
 }

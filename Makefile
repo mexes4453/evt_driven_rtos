@@ -1,5 +1,5 @@
 
-SRCS:= main.c  os.c clk.c utils.c
+SRCS:= main.c  os.c clk.c utils.c app.c
 
 OBJS:= $(SRCS:.c=.o)
 MSG = 
@@ -12,7 +12,7 @@ STD = c89
 DEBUG = 
 VALGRIND =
 VAL =
-CFLAGS = -Werror -Wall -Wextra -std=$(STD) -pthread -lrt 
+CFLAGS = -Werror -Wall -Wextra -pthread -lrt #-std=$(STD) 
 CFLAGS += -D__thread__
 INCLUDES = -I./
 
