@@ -1,12 +1,13 @@
 #ifndef CLK_H
 #define CLK_H
 
+/*  #define _XOPEN_SOURCE 600 */
 #include "utils.h"
 #include <time.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <semaphore.h>
 
-/*  #define _XOPEN_SOURCE 600 */
 
 #define CLK_CYCLE_MS (1)
 #define CLK_NS (1000000000)

@@ -4,6 +4,7 @@
 static timer_t      timerId;
 extern int          exitSig;
 extern int          execCounter;
+extern sem_t        blueSem;
 
 int CLK_InitTimer(struct sigevent *sigev)
 {
@@ -53,9 +54,10 @@ void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
     {
         case SIGALRM: /* call the sequencer within here */
         {
-            UTILS_PrintTxt("handling the sig info interrupt \n");
-            CLK_ShowTimeMs();
+            //UTILS_PrintTxt("handling the sig info interrupt \n");
+            //CLK_ShowTimeMs();
             execCounter++;
+            sem_post(&blueSem);
             break ;
         }
         case SIGINT:
@@ -69,9 +71,9 @@ void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
     }
     if (siginfo && contextInfo)
     {
-        UTILS_PrintTxt("Sign info: ");
-        UTILS_PrintInt((uint64_t)siginfo->si_signo);
-        UTILS_PrintTxt("\n");
+        //UTILS_PrintTxt("Sign info: ");
+        //UTILS_PrintInt((uint64_t)siginfo->si_signo);
+        //UTILS_PrintTxt("\n");
     }
 }
 
