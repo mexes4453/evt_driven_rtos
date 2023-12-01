@@ -47,6 +47,11 @@ int main (void)
 
     blueThreadParams.idx = 0;   
     blueThreadParams.sema = &blueSem;   
+    blueThreadParams.name = "blueThread";
+    blueThreadParams.prio = blueThreadSchedParams.sched_priority;
+    blueThreadParams.stateExit = false;
+
+
     OS_CreateThread(&blueThread,
      &blueThreadAttr,
       //NULL,
@@ -60,17 +65,8 @@ int main (void)
     {
         pause();
         if (exitSig)
-        {
-#ifdef __thread__
-            pthread_kill(blueThread, SIGKILL);
-    /*  wait for all threads to join back the main before exiting. */
-    /*  The threads are not expected to rejoin as they should run forever. */
-    //pthread_join(blueThread, NULL);
-            pthread_join(blueThread, NULL);
-#endif 
-            CLK_DisableTimer();
-            sem_destroy(&blueSem);
-            pthread_attr_destroy(&blueThreadAttr);
+        {   blueThreadParams.stateExit = true;
+            sem_post(&blueSem);
             printf("Interrupt count: %d\n", execCounter);
             printf("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
             printf("max_prior: %d; min_prior: %d\n", sched_get_priority_max(SCHED_FIFO),
@@ -79,5 +75,16 @@ int main (void)
             break ;
         }
     }
+#ifdef __thread__
+    // pthread_kill(blueThread, SIGTERM);
+
+    /*  wait for all threads to join back the main before exiting. */
+    /*  The threads are not expected to rejoin as they should run forever. */
+    //pthread_join(blueThread, NULL);
+    pthread_join(blueThread, NULL);
+    sem_destroy(&blueSem);
+    pthread_attr_destroy(&blueThreadAttr);
+#endif 
+    CLK_DisableTimer();
     return (0);
 }

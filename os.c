@@ -24,19 +24,19 @@ int OS_CreateThread(pthread_t *thread, const pthread_attr_t *attr,
 
 void    OS_ShowThreadInfo(t_osThreadParams *params)
 {
-    /*
-    cpu_set_t   cpuSet;
-    pthread_t   tid;
-    int         res;
-
-    tid = pthread_self();
-    res = sched_getaffinity(tid, sizeof(cpuSet), &cpuSet);
-    if (res != 0) PERROR("pthread_getaffinity", -3);
-    */
     uint64_t tid = (uint64_t)params->tid;
-    UTILS_PrintTxt("--- show thread info ---");
+
+    UTILS_PrintTxt(COL_BLUE);
+    UTILS_PrintTxt("-- ");
+    UTILS_PrintTxt(params->name);
+    UTILS_PrintTxt(" -- ID(");
     UTILS_PrintInt(tid);
-    UTILS_PrintTxt("\n");
+    UTILS_PrintTxt(") - CPU(");
+    UTILS_PrintInt((uint64_t)sched_getcpu());
+    UTILS_PrintTxt(") - PRIO(");
+    UTILS_PrintInt((uint64_t)params->prio);
+    UTILS_PrintTxt(")\n");
+    UTILS_PrintTxt(COL_DEFAULT);
 }
 
 void    OS_CallFunc(t_osThreadhandler func)

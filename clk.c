@@ -38,14 +38,27 @@ int CLK_InitTimer(struct sigevent *sigev)
 
 void    CLK_DisableTimer(void)
 {
+    struct itimerspec   ts;
+    int res;
     uint64_t l_timerId = (uint64_t)timerId;
+
+    /* setting the timer value to 0 to stop timer */
+    ts.it_interval.tv_sec = 0;
+    ts.it_interval.tv_nsec = 0;
+    ts.it_value.tv_sec = 0;
+    ts.it_value.tv_nsec = 0;
+    res = timer_settime(timerId, 0, &ts, NULL);
+    if (res < 0) PERROR("timer_settime", -2);
+
     UTILS_PrintTxt("timerId: ");
     UTILS_PrintInt(l_timerId);
     UTILS_PrintTxt("\n");
-    int res = timer_delete(timerId);
+    res = timer_delete(timerId);
     if (res < 0) PERROR("timer_delete", -127);
     UTILS_PrintTxt("disabled Timer\n");
 }
+
+
 
 void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
 {
@@ -62,7 +75,7 @@ void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
         }
         case SIGINT:
         {
-            exitSig = 1;
+            ++exitSig;
             break ;
         }
         default:

@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
+# define COL_BLUE       "\033[0;34m"
+# define COL_RED        "\033[0;31m"
+# define COL_YELLOW     "\033[0;33m"
+# define COL_MAGENTA    "\033[0;35m"
+# define COL_DEFAULT    "\033[0m"
 
 
 /* MACROS */

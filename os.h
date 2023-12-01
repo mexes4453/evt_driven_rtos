@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <sys/sysinfo.h>
 #include <semaphore.h>
+#include <stdbool.h>
 
 
 /* TYPE DEFINITION */
@@ -20,7 +21,11 @@ typedef struct
     int         idx;
     pthread_t   tid;
     sem_t       *sema;
-
+    char        *name;
+    int         prio;
+    int         delay;
+    bool        stateExit;
+    
 }   t_osThreadParams;
 
 int    OS_CreateThread(pthread_t *thread, const pthread_attr_t *attr,
