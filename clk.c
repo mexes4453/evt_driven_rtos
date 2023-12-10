@@ -4,7 +4,9 @@
 static timer_t      timerId;
 extern int          exitSig;
 extern int          execCounter;
-extern sem_t        blueSem;
+extern int          tripCounter;
+
+extern sem_t        semExec[1];
 
 int CLK_InitTimer(struct sigevent *sigev)
 {
@@ -69,8 +71,9 @@ void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
         {
             //UTILS_PrintTxt("handling the sig info interrupt \n");
             //CLK_ShowTimeMs();
-            execCounter++;
-            sem_post(&blueSem);
+            CLK_ShowTimeMs();
+            if (tripCounter % 2 == 0) sem_post(&semExec[0]);
+            if (tripCounter % 5 == 0) sem_post(&semExec[1]);
             break ;
         }
         case SIGINT:

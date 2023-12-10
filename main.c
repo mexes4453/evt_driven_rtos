@@ -4,87 +4,101 @@
 
 int exitSig = 0;
 int execCounter = 0;
-sem_t      blueSem;
+int tripCounter = 0;
+
+#ifdef __thread__
+sem_t               semExec[APP_THREAD_MAX];
+#endif
 
 int main (void)
 {
     static struct sigaction     sa;
     struct sigevent             sigevt;
-    sem_init(&blueSem, 0, 0);
+
 
 #ifdef __thread__
-    cpu_set_t           cpuSet;
-    pthread_t           blueThread;
-    pthread_attr_t      blueThreadAttr;
-    struct sched_param  blueThreadSchedParams;
-    t_osThreadParams    blueThreadParams;
+    int         idx = 0;
+    pthread_t           appThreads[APP_THREAD_MAX];
+    t_osThreadParams    threadParams[APP_THREAD_MAX];
+    t_osThreadTable     appThreadTable[APP_THREAD_MAX] = { 
+        {
+            "LED_B",                     /* Thread name */
+            &(appThreads[APP_LED_BLUE]),         /* Thread ptr */ 
+            &(threadParams[APP_LED_BLUE]),       /* Thread parameter ptr */ 
+            &(semExec[APP_LED_BLUE]),            /* Execution semaphore */ 
+            3,                              /* CPU index number */
+            98,                             /* Thread priority */ 
+            APP_TaskBlue                    /* Thread function or handler */
+        },
+        {
+            "LED_Y",                     /* Thread name */
+            &(appThreads[APP_LED_YELLOW]),         /* Thread ptr */ 
+            &(threadParams[APP_LED_YELLOW]),       /* Thread parameter ptr */ 
+            &(semExec[APP_LED_YELLOW]),            /* Execution semaphore */ 
+            3,                              /* CPU index number */
+            97,                             /* Thread priority */ 
+            APP_TaskYellow                    /* Thread function or handler */
+        }
+    };
+    int threadTableSize = sizeof(appThreadTable) / sizeof(t_osThreadTable);
+    OS_InitAllThreadParams(appThreadTable, threadTableSize);
+#endif
 
-#endif 
 
     OS_InitSchedInterrupt(&sa);
     CLK_InitTimer(&sigevt);
 
 
-
-
 #ifdef __thread__
     /* OS_CallFunc(hello);  Testing function */
 
-    bzero(&blueThreadParams, sizeof(t_osThreadParams));
-    bzero(&blueThreadSchedParams, sizeof(blueThreadSchedParams));
-    bzero(&blueThread, sizeof(pthread_t));
-    bzero(&blueThreadAttr, sizeof(pthread_attr_t));
+    OS_CreateAllThreads(appThreadTable, threadTableSize);
 
-    CPU_ZERO(&cpuSet);
-    CPU_SET((2), &cpuSet);
-    if (pthread_attr_init(&blueThreadAttr) != 0) PERROR("attr_init", -127);
-    if (pthread_attr_setinheritsched(&blueThreadAttr, PTHREAD_INHERIT_SCHED) != 0) PERROR("attr_init", -127);
-    if (pthread_attr_setschedpolicy(&blueThreadAttr, SCHED_FIFO) != 0) PERROR("attr_init", -127); ;
-    if (pthread_attr_setaffinity_np(&blueThreadAttr, sizeof(cpu_set_t), &cpuSet)  != 0) PERROR("attr_init", -127); ;;
-
-    blueThreadSchedParams.sched_priority = sched_get_priority_max(SCHED_FIFO) - 1;
-    pthread_attr_setschedparam(&blueThreadAttr, &blueThreadSchedParams);
-
-    blueThreadParams.idx = 0;   
-    blueThreadParams.sema = &blueSem;   
-    blueThreadParams.name = "blueThread";
-    blueThreadParams.prio = blueThreadSchedParams.sched_priority;
-    blueThreadParams.stateExit = false;
-
-
-    OS_CreateThread(&blueThread,
-     &blueThreadAttr,
-      //NULL,
-      &APP_TaskBlue, 
-      (void *)&blueThreadParams);
-
-
+    /* Enable sequencer */
 #endif 
 
     while (1)
     {
         pause();
+        execCounter++;
+        tripCounter = (tripCounter + 1) % 10;
         if (exitSig)
-        {   blueThreadParams.stateExit = true;
-            sem_post(&blueSem);
+        {   
+
+
+#ifdef __thread__
+            for (idx = 0; idx < threadTableSize; idx++)
+            {
+                threadParams[idx].stateExit = true;
+                sem_post(&semExec[idx]);
+                printf("blue thread id: %ld\n", threadParams[idx].tid);
+            }
+#endif 
+
             printf("Interrupt count: %d\n", execCounter);
             printf("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
             printf("max_prior: %d; min_prior: %d\n", sched_get_priority_max(SCHED_FIFO),
                                                      sched_get_priority_min(SCHED_FIFO));
-            printf("blue thread id: %ld\n", blueThreadParams.tid);
             break ;
         }
     }
+
+
 #ifdef __thread__
     // pthread_kill(blueThread, SIGTERM);
 
     /*  wait for all threads to join back the main before exiting. */
     /*  The threads are not expected to rejoin as they should run forever. */
     //pthread_join(blueThread, NULL);
-    pthread_join(blueThread, NULL);
-    sem_destroy(&blueSem);
-    pthread_attr_destroy(&blueThreadAttr);
+    for (idx = 0; idx < threadTableSize; idx++)
+    {
+        pthread_join(appThreads[idx], NULL);
+        sem_destroy(&semExec[idx]);
+        pthread_attr_destroy(&(threadParams[idx].attr));
+    }
 #endif 
+
+
     CLK_DisableTimer();
     return (0);
 }

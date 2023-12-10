@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 # define COL_BLUE       "\033[0;34m"
 # define COL_RED        "\033[0;31m"
