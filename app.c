@@ -8,6 +8,7 @@ void    *APP_TaskBlue(void *ptr)
     while (!threadParams->stateExit)
     {
         sem_wait(threadParams->semExec);
+        //CLK_ShowTimeMs();
         OS_ShowThreadInfo(threadParams, COL_BLUE);
         /* event pump or do more work here */
     }
@@ -26,6 +27,7 @@ void    *APP_TaskYellow(void *ptr)
     while (!threadParams->stateExit)
     {
         sem_wait(threadParams->semExec);
+        //CLK_ShowTimeMs();
         OS_ShowThreadInfo(threadParams, COL_YELLOW);
         /* event pump or do more work here */
     }

@@ -82,7 +82,14 @@ void    OS_InitAllThreadParams(t_osThreadTable   *threadTable, int tableSize)
 void    OS_ShowThreadInfo(t_osThreadParams *params, char *color)
 {
     uint64_t tid = (uint64_t)params->tid;
-
+    UTILS_PRINTF("%s-- %s -- ID(%d) - CPU(%d) - PRIO(%d)\n%s", 
+                color,
+                params->name, 
+                tid, 
+                sched_getcpu(), 
+                params->prio,
+                COL_DEFAULT);
+/*
     UTILS_PrintTxt(color);
     UTILS_PrintTxt("-- ");
     UTILS_PrintTxt(params->name);
@@ -94,6 +101,7 @@ void    OS_ShowThreadInfo(t_osThreadParams *params, char *color)
     UTILS_PrintInt((uint64_t)params->prio);
     UTILS_PrintTxt(")\n");
     UTILS_PrintTxt(COL_DEFAULT);
+*/
 }
 
 void    OS_CallFunc(t_osThreadhandler func)

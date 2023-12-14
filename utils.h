@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include "./ft_printf/ft_printf.h"
 
 # define COL_BLUE       "\033[0;34m"
 # define COL_RED        "\033[0;31m"
@@ -20,10 +21,15 @@
     perror(msg); exit(errNo); \
 }\
 
+#define UTILS_PRINTF(stringFmt, ...)\
+    (ft_printf(stringFmt, ##__VA_ARGS__)) \
+
+
 
 /* FUNCTIONS */
 void UTILS_PrintTxt(char *msg);
 void UTILS_PrintInt(uint64_t nbr);
+
 
 
 #endif /* UTILS_H */

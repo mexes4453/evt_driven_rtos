@@ -26,9 +26,12 @@ int CLK_InitTimer(struct sigevent *sigev)
     res = timer_create(CLK_ID, sigev, &timerId);
     if (res < 0) PERROR("timer_create", -2);
 
+    /*
     UTILS_PrintTxt("timerId: ");
     UTILS_PrintInt((uint64_t)timerId);
     UTILS_PrintTxt("\n");
+    */
+    UTILS_PRINTF("timerId: %d\n", timerId);
     
     /* arm the timer */
     res = timer_settime(timerId, 0, &ts, NULL);
@@ -52,9 +55,12 @@ void    CLK_DisableTimer(void)
     res = timer_settime(timerId, 0, &ts, NULL);
     if (res < 0) PERROR("timer_settime", -2);
 
+    /*
     UTILS_PrintTxt("timerId: ");
     UTILS_PrintInt(l_timerId);
     UTILS_PrintTxt("\n");
+    */
+    UTILS_PRINTF("timerId: %d \n", l_timerId);
     res = timer_delete(timerId);
     if (res < 0) PERROR("timer_delete", -127);
     UTILS_PrintTxt("disabled Timer\n");
@@ -69,7 +75,7 @@ void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
     {
         case SIGALRM: /* call the sequencer within here */
         {
-            //UTILS_PrintTxt("handling the sig info interrupt \n");
+            //UTILS_PrintTxt("clk sig - ");
             //CLK_ShowTimeMs();
             CLK_ShowTimeMs();
             if (tripCounter % 2 == 0) sem_post(&semExec[0]);
@@ -102,7 +108,10 @@ void    CLK_ShowTimeMs(void)
     int res = clock_gettime(CLK_ID,  &ts);
     if (res < 0) PERROR("clock_gettime\n", -2);
 
+    UTILS_PRINTF("Time: %ds \n", ts.tv_sec);
+    /*
     UTILS_PrintTxt("Time: ");
     UTILS_PrintInt((uint64_t)ts.tv_sec);
     UTILS_PrintTxt("s \n");
+    */
 }
