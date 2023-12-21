@@ -74,6 +74,8 @@ void UTILS_PrintInt(uint64_t nbr);
         }\
     }\
 
+
+
 /* Update this macro using minimalistic printf */
 #define UTILS_ASSERT(condition,msg,msgCnt)\
     if (!(condition))\
@@ -84,13 +86,13 @@ void UTILS_PrintInt(uint64_t nbr);
 	
 
 
-
-
-#define QUEUE_TRANS(_target)(((queue *)me)->state = _target)
+#define QUEUE_TRANS(_target)(((tQueue *)me)->state = _target)
 #define QUEUE_PUT_DATA(data)\
 	(me->data)[idxPost] = (data);\
 	me->idxPost = (me->idxPost + 1) % (me->size);\
 	(me->entryCnt)++;\
+
+
 
 #define QUEUE_FETCH_DATA(ppData)\
 	*(ppData) = (me->data)[idxGet];\
@@ -98,13 +100,18 @@ void UTILS_PrintInt(uint64_t nbr);
 	(me->entryCnt)--;\
 	
 
+
 #define QUEUE_MUTEX_LOCK(pQueue)\
 	while (((tQueue *)(pQueue))->mtx){}\
 	((tQueue *)(pQueue))->mtx = 1;\
-		
+
+
+	
 #define QUEUE_MUTEX_UNLOCK(pQueue)\
 	((tQueue *)(pQueue))->mtx = 0;\
-	
+
+
+
 /* message queue
 
 	+ mq_create
@@ -133,7 +140,7 @@ typedef enum enStatusQueue
 	QUEUE_STATUS_FAIL = -1,
 	QUEUE_STATUS_SUCCESS,
 	QUEUE_STATUS_IGNORED
-}   tenStatusQueue;
+}   t_enStatusQueue;
 
 
 typedef enum enStateQueue
@@ -155,16 +162,16 @@ typedef struct sQueue
 	uint8_t          mtx;
 	bool             optionBlock;
 	void             *data[size];
-}   tQueue;
+}   t_Queue;
 
 
-void              QUEUE_Init(tQueue * const me);
-tenStatusQueue    QUEUE_Post(tQueue * const me, void *d);
-tenStatusQueue    QUEUE_Get(tQueue * const me, void **d);
-void              QUEUE_Clear(tQueue * const me);
+void              QUEUE__Init(t_Queue * const me);
+t_enStatusQueue   QUEUE__Put(t_Queue * const me, void *pData);
+t_enStatusQueue   QUEUE__Get(t_Queue * const me, void **ppData);
+void              QUEUE__Clear(t_Queue * const me);
 
 
-void    QUEUE_Init(tQueue * const me, bool optionBlock)
+void    QUEUE__Init(t_Queue * const me, bool optionBlock)
 {
 	/*
 	me->entryCnt = 0;
@@ -173,35 +180,35 @@ void    QUEUE_Init(tQueue * const me, bool optionBlock)
 	me->idxGet = 0;
 	me->optionBlock = 0;
 	*/
-	UTILS_MEMSET(me,0,sizeof(tQueue))
+	UTILS_MEMSET(me,0,sizeof(t_Queue))
 	me->state = QUEUE_STATE_EMPTY;
 	me->optionBlock = optionBlock;
 }
 
 
-void    QUEUE_Clear(tQueue * const me)
+void    QUEUE__Clear(t_Queue * const me)
 {
-	QUEUE_MUTEX_LOCK(me);
+	QUEUE_MUTEX_LOCK(me)
 	UTILS_MEMSET(me->data,0,size)
 	me->idxPost = 0;
 	me->idxGet = 0;
 	me->entryCnt = 0;
 	me->state = QUEUE_STATE_EMPTY;
-	QUEUE_MUTEX_UNLOCK(me);
+	QUEUE_MUTEX_UNLOCK(me)
 }
 
 
-tenStatusQueue    QUEUE_Post(tQueue * const me, void *d)
+t_enStatusQueue    QUEUE__Put(t_Queue * const me, void *pData)
 {
-	tenStatusQueue result = QUEUE_STATUS_FAIL;
-	QUEUE_MUTEX_LOCK(me);
+	t_enStatusQueue result = QUEUE_STATUS_FAIL;
+	QUEUE_MUTEX_LOCK(me)
 	
 	switch (me->state)
 	{
 		case   QUEUE_STATE_EMPTY:
 		{
-			QUEUE_PUT_DATA(d)
-			QUEUE_TRANS(QUEUE_STATE_NOT_EMPTY);
+			QUEUE_PUT_DATA(pData)
+			QUEUE_TRANS(QUEUE_STATE_NOT_EMPTY)
 			result = QUEUE_STATUS_SUCCESS;
 			break ;
 		}
@@ -210,16 +217,16 @@ tenStatusQueue    QUEUE_Post(tQueue * const me, void *d)
 		{
 			UTILS_ASSERT((me->entryCnt < me->size), "error! queue post: NF\n", 23)
 			/* Put data in Queue */
-			QUEUE_PUT_DATA(d)
+			QUEUE_PUT_DATA(pData)
 			
 			/* Change queue state */
 			if (me->entryCnt >= me->size)
 			{
-				QUEUE_TRANS(QUEUE_STATE_FULL);
+				QUEUE_TRANS(QUEUE_STATE_FULL)
 			}
 			else
 			{
-				QUEUE_TRANS(QUEUE_STATE_NOT_FULL);
+				QUEUE_TRANS(QUEUE_STATE_NOT_FULL)
 			}
 			result = QUEUE_STATUS_SUCCESS;
 			break ;
@@ -231,7 +238,7 @@ tenStatusQueue    QUEUE_Post(tQueue * const me, void *d)
 			if (optionBlock) /* Block and wait till there is space for input */
 			{
 				while (me->entryCnt >= me->size){}	
-				QUEUE_PUT_DATA(d)
+				QUEUE_PUT_DATA(pData)
 				result = QUEUE_STATUS_SUCCESS;
 			}
 			else /* simple ignore data */
@@ -241,22 +248,22 @@ tenStatusQueue    QUEUE_Post(tQueue * const me, void *d)
 			break ;
 		}
 	}
-	QUEUE_MUTEX_UNLOCK(me);
+	QUEUE_MUTEX_UNLOCK(me)
 	return (result);
 }
 
 
-tenStatusQueue    QUEUE_Get(tQueue * const me, void **d)
+t_enStatusQueue    QUEUE__Get(t_Queue * const me, void **ppData)
 {
-	tenStatusQueue result = QUEUE_STATUS_FAIL;
+	t_enStatusQueue result = QUEUE_STATUS_FAIL;
 	
 	QUEUE_MUTEX_LOCK(me);
 	switch (me->state)
 	{
 		case   QUEUE_STATE_FULL: /* block or return fail */
 		{
-			QUEUE_FETCH_DATA(d);
-			QUEUE_TRANS(QUEUE_STATE_NOT_FULL);
+			QUEUE_FETCH_DATA(ppData)
+			QUEUE_TRANS(QUEUE_STATE_NOT_FULL)
 			result = QUEUE_STATUS_SUCCESS;
 			break ;
 		}
@@ -265,16 +272,16 @@ tenStatusQueue    QUEUE_Get(tQueue * const me, void **d)
 		{
 			UTILS_ASSERT((me->entryCnt > 0), "error! queue get: NF\n", 21)
 			/* Fetch data in Queue */
-			QUEUE_FETCH_DATA(d);
+			QUEUE_FETCH_DATA(ppData);
 			
 			/* Change queue state */
 			if (me->entryCnt == 0)
 			{
-				QUEUE_TRANS(QUEUE_STATE_EMPTY);
+				QUEUE_TRANS(QUEUE_STATE_EMPTY)
 			}
 			else
 			{
-				QUEUE_TRANS(QUEUE_STATE_NOT_EMPTY);
+				QUEUE_TRANS(QUEUE_STATE_NOT_EMPTY)
 			}
 			result = QUEUE_STATUS_SUCCESS;
 			break ;
@@ -286,7 +293,7 @@ tenStatusQueue    QUEUE_Get(tQueue * const me, void **d)
 			if (optionBlock) /* Block and wait till there is space for input */
 			{
 				while (me->entryCnt >= me->size){}	
-				QUEUE_PUT_DATA(d)
+				QUEUE_FETCH_DATA(ppData)
 				result = QUEUE_STATUS_SUCCESS;
 			}
 			else /* simple ignore data */
@@ -300,5 +307,67 @@ tenStatusQueue    QUEUE_Get(tQueue * const me, void **d)
 	return (result);
 }
 
+
+
+
+
+
+
+
+
+
+/* Active object = thread + queue + statemachine */
+#define AO_TRUE (1)
+
+typedef enum enStatusActiveObj
+{
+	AO_STATUS_FAIL = -1,
+	AO_STATUS_SUCCESS,
+	AO_STATUS_IGNORED
+}   t_enStatusActiveObj;
+
+typedef struct sActiveObj
+{
+	pthread_t    thread;
+	t_Queue		 xEvtQueue;
+	evtHandler	 dispatch;
+	/* Private data */
+	
+}   t_ActiveObj;
+
+
+t_enStatusActiveObj    AO__Ctor(t_ActiveObj * const me, evtHandler dispatch);
+t_enStatusActiveObj    AO__Post(t_ActiveObj * const me, void *pData);
+t_enStatusActiveObj    AO__EvtPump(void *pObj);
+
+
+
+t_enStatusActiveObj    AO__Put(t_ActiveObj * const me, void *pData)
+{
+	t_enStatusActiveObj result = AO_STATUS_FAIL;
+	
+	result = QUEUE__Put(&(me->xEvtQueue), pData);
+	return (result);
+}
+
+
+
+t_enStatusActiveObj    AO__EvtPump(void *pObj)
+{
+	t_activeObj       *me = (t_ActiveObj *)pObj;
+	void	          *pData = NULL;
+	t_enStatusQueue   result = AO_STATUS_FAIL;
+	
+	while (AO_TRUE)
+	{
+		result = QUEUE__Get(&(me->xEvtQueue), &pData);
+		UTILS_ASSERT((result == QUEUE_STATUS_SUCCESS))
+		me->dispatch(me, pData);
+	}
+}
+/* Active object - End */
+
+
+/* Event class */
 
 #endif /* UTILS_H */
