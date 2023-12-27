@@ -1,10 +1,12 @@
 #include "os.h"
 #include "clk.h"
 #include "app.h"
+#include "queue.h"
 
 int exitSig = 0;
 int execCounter = 0;
 int tripCounter = 0;
+t_Queue              msgQueue;
 
 #ifdef __thread__
 sem_t               semExec[APP_THREAD_MAX];
@@ -15,6 +17,7 @@ int main (void)
     static struct sigaction     sa;
     struct sigevent             sigevt;
 
+    QUEUE__Init(&msgQueue, false);
 
 #ifdef __thread__
     int         idx = 0;
@@ -62,6 +65,8 @@ int main (void)
         pause();
         execCounter++;
         tripCounter = (tripCounter + 1) % 10;
+        //QUEUE__Put(&msgQueue, (void *)&execCounter);
+        ft_printf("Queue level: %d\n", QUEUE__GetLevel(&msgQueue));
         if (exitSig)
         {   
 
