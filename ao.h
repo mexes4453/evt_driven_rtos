@@ -2,6 +2,12 @@
 #ifndef AO_H
 #define AO_H
 /* Active object = thread + queue + statemachine */
+
+
+#include "os.h"
+#include "utils.h"
+#include "queue.h"
+
 #define AO_TRUE (1)
 
 typedef enum enStatusActiveObj
@@ -11,49 +17,86 @@ typedef enum enStatusActiveObj
 	AO_STATUS_IGNORED
 }   t_enStatusActiveObj;
 
-#if 0
+
+
+/* define data type for signal of type int16_t */
+typedef unsigned int t_signal;      
+
+
+
+/** 
+  * Event base class 
+  * All other events will be a subclass of this base class.
+  * They would add their own additional properties and method.
+  */
+typedef struct sEvent
+{
+    t_signal sig;
+}   t_Event; 
+
+
+
+enum enSignalsReserved
+{
+    SIG_INIT,
+    SIG_USER
+};
+
+
+/** 
+ * Forward declaration of active object class
+ * This allows for event handler hook function prototyping prior to its
+ * use in the proper active object class definition below
+ */
+typedef struct sActiveObj t_ActiveObj;
+
+
+/**
+ * @brief 
+ * hook function prototype for handling the events.
+ * This prototype function would contain the state-machine which would
+ * discriminate based on the event type and perform corresponding action
+ * and update the active object state if state transition occurs due to
+ * executed action.
+ */
+typedef void (*f_EventHandler)(t_ActiveObj * const me, t_Event const * const evt);
+
+
+/**
+ * @brief 
+ * Active object class: thread + queue + statemachine
+ * 
+ */
 typedef struct sActiveObj
 {
-	pthread_t    thread;
-	t_Queue		 xEvtQueue;
-	evtHandler	 dispatch;
-	/* Private data */
-	
+	pthread_t           thread;
+	t_Queue		        xEvtQueue;
+	f_EventHandler	    dispatch;
+    t_osThreadParams    threadParams;
 }   t_ActiveObj;
 
 
-t_enStatusActiveObj    AO__Ctor(t_ActiveObj * const me, evtHandler dispatch);
+t_enStatusActiveObj    AO__Ctor(t_ActiveObj * const me, f_EventHandler dispatch, int cpuIdx, int prior);
 t_enStatusActiveObj    AO__Post(t_ActiveObj * const me, void *pData);
-t_enStatusActiveObj    AO__EvtPump(void *pObj);
+void                   *AO__EvtPump(void *pObj);
 
 
-
-t_enStatusActiveObj    AO__Put(t_ActiveObj * const me, void *pData)
+/* User-defined Event class */
+#define AO_TOTAL_TIME_EVT (10)
+typedef struct sEventTime
 {
-	t_enStatusActiveObj result = AO_STATUS_FAIL;
-	
-	result = QUEUE__Put(&(me->xEvtQueue), pData);
-	return (result);
-}
+    t_Event     super;
+    t_ActiveObj *ao;
+    int         tickCounter;
+    bool        interval;
+} t_EventTime;
 
 
+void    AO_EventTime__Ctor(t_EventTime * const me, t_signal sig, t_ActiveObj * const ao);
+void    AO_EventTime__Enable(t_EventTime *const me, int tickCount, int interval);
+void    AO_EventTime__Disable(t_EventTime *const me);
+void    AO_EventTime__Tick(void);
 
-t_enStatusActiveObj    AO__EvtPump(void *pObj)
-{
-	t_activeObj       *me = (t_ActiveObj *)pObj;
-	void	          *pData = NULL;
-	t_enStatusQueue   result = AO_STATUS_FAIL;
-	
-	while (AO_TRUE)
-	{
-		result = QUEUE__Get(&(me->xEvtQueue), &pData);
-		UTILS_ASSERT((result == QUEUE_STATUS_SUCCESS))
-		me->dispatch(me, pData);
-	}
-}
-/* Active object - End */
-#endif
 
-/* Event class */
 
 #endif /* AO_H */

@@ -123,7 +123,13 @@ t_enStatusQueue    QUEUE__Get(t_Queue * const me, void **ppData)
 		}
 		default:	/* QUEUE_STATE_EMPTY */
 		{
-			UTILS_ASSERT((me->entryCnt == 0), "error! queue get: E\n")
+            //ft_printf("QUEUE-> entries: %d; state: %d\n", me->entryCnt, me->state);
+            if(me->entryCnt != 0)
+            {
+                ft_printf("entryCount queue! %d; mtx: %d\n", me->entryCnt, me->mtx);
+                exit(1);
+            } 
+			//UTILS_ASSERT((me->entryCnt == 0), "error! queue get: E\n")
 			QUEUE_TRANS(QUEUE_STATE_EMPTY);
 			if (me->optionBlock) /* Block and wait till there is space for input */
 			{

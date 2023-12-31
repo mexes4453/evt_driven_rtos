@@ -1,5 +1,7 @@
 #include "os.h"
 //extern struct sigaction    sa;
+
+
 void    OS_InitSchedInterrupt(struct sigaction *sa)
 {
     
@@ -56,7 +58,7 @@ void    OS_InitThreadParams(t_osThreadParams *threadParam, int cpuIdx, int prio)
     threadParam->prio = prio;
     threadParam->stateExit = false;
     threadParam->stateExec = OS_STATE_READY;
-    sem_init(threadParam->semExec, 0, 0);
+    //sem_init(threadParam->semExec, 0, 0);
 
 }
 
@@ -109,4 +111,13 @@ void    OS_CallFunc(t_osThreadhandler func)
     void    *nullPtr = func(NULL);
     UTILS_PrintTxt("calling from main thread\n");
     if (nullPtr){};
+}
+
+
+sigset_t    sigSetBlock, sigSetDefault;
+void    OS_BlockSignals(void)
+{
+    sigemptyset(&sigSetBlock);
+    sigaddset(&sigSetBlock, SIGALRM);
+    sigprocmask(SIG_BLOCK, &sigSetBlock, &sigSetDefault);
 }

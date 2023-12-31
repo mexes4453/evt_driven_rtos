@@ -2,25 +2,30 @@
 #include "clk.h"
 #include "app.h"
 #include "queue.h"
+#include "ao.h"
 
 int exitSig = 0;
 int execCounter = 0;
 int tripCounter = 0;
-t_Queue              msgQueue;
+//t_Queue              msgQueue;
 
 #ifdef __thread__
-sem_t               semExec[APP_THREAD_MAX];
+//sem_t               semExec[APP_THREAD_MAX];
+t_colorLed          colorLed;
+
 #endif
 
 int main (void)
 {
     static struct sigaction     sa;
     struct sigevent             sigevt;
+//    t_ActiveObj                 *AO_ColorLed = &(colorLed.super);
 
-    QUEUE__Init(&msgQueue, false);
+    //QUEUE__Init(&msgQueue, false);
 
 #ifdef __thread__
-    int         idx = 0;
+    //int         idx = 0;
+#if 0
     pthread_t           appThreads[APP_THREAD_MAX];
     t_osThreadParams    threadParams[APP_THREAD_MAX];
     t_osThreadTable     appThreadTable[APP_THREAD_MAX] = { 
@@ -34,17 +39,19 @@ int main (void)
             APP_TaskBlue                    /* Thread function or handler */
         },
         {
-            "LED_Y",                     /* Thread name */
-            &(appThreads[APP_LED_YELLOW]),         /* Thread ptr */ 
-            &(threadParams[APP_LED_YELLOW]),       /* Thread parameter ptr */ 
-            &(semExec[APP_LED_YELLOW]),            /* Execution semaphore */ 
-            3,                              /* CPU index number */
-            97,                             /* Thread priority */ 
-            APP_TaskYellow                    /* Thread function or handler */
+            "LED_Y",                                /* Thread name */
+            &(appThreads[APP_LED_YELLOW]),          /* Thread ptr */ 
+            &(threadParams[APP_LED_YELLOW]),        /* Thread parameter ptr */ 
+            &(semExec[APP_LED_YELLOW]),             /* Execution semaphore */ 
+            3,                                      /* CPU index number */
+            97,                                     /* Thread priority */ 
+            APP_TaskYellow                          /* Thread function or handler */
         }
     };
     int threadTableSize = sizeof(appThreadTable) / sizeof(t_osThreadTable);
-    OS_InitAllThreadParams(appThreadTable, threadTableSize);
+#endif
+    colorLed_Ctor(&colorLed, 3, 98);
+    //OS_InitAllThreadParams(appThreadTable, threadTableSize);
 #endif
 
 
@@ -55,7 +62,7 @@ int main (void)
 #ifdef __thread__
     /* OS_CallFunc(hello);  Testing function */
 
-    OS_CreateAllThreads(appThreadTable, threadTableSize);
+    //OS_CreateAllThreads(appThreadTable, threadTableSize);
 
     /* Enable sequencer */
 #endif 
@@ -66,18 +73,20 @@ int main (void)
         execCounter++;
         tripCounter = (tripCounter + 1) % 10;
         //QUEUE__Put(&msgQueue, (void *)&execCounter);
-        ft_printf("Queue level: %d\n", QUEUE__GetLevel(&msgQueue));
+        //ft_printf("Queue level: %d\n", QUEUE__GetLevel(&msgQueue));
         if (exitSig)
         {   
 
 
 #ifdef __thread__
+#if 0
             for (idx = 0; idx < threadTableSize; idx++)
             {
                 threadParams[idx].stateExit = true;
                 sem_post(&semExec[idx]);
                 printf("blue thread id: %ld\n", threadParams[idx].tid);
             }
+#endif 
 #endif 
 
             printf("Interrupt count: %d\n", execCounter);
@@ -95,12 +104,16 @@ int main (void)
     /*  wait for all threads to join back the main before exiting. */
     /*  The threads are not expected to rejoin as they should run forever. */
     //pthread_join(blueThread, NULL);
+    pthread_join(colorLed.super.thread, NULL);
+    //pthread_attr_destroy(&(colorLed.super.threadParams.attr));
+#if 0
     for (idx = 0; idx < threadTableSize; idx++)
     {
         pthread_join(appThreads[idx], NULL);
         sem_destroy(&semExec[idx]);
         pthread_attr_destroy(&(threadParams[idx].attr));
     }
+#endif 
 #endif 
 
 

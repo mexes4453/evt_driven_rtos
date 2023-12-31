@@ -7,6 +7,7 @@ extern int          execCounter;
 extern int          tripCounter;
 
 extern sem_t        semExec[1];
+extern t_ActiveObj  *AO_ColorLed;
 
 int CLK_InitTimer(struct sigevent *sigev)
 {
@@ -70,7 +71,7 @@ void    CLK_DisableTimer(void)
 
 void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
 {
-    
+
     switch (sig)
     {
         case SIGALRM: /* call the sequencer within here */
@@ -78,8 +79,9 @@ void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
             //UTILS_PrintTxt("clk sig - ");
             //CLK_ShowTimeMs();
             CLK_ShowTimeMs();
-            if (tripCounter % 2 == 0) sem_post(&semExec[0]);
-            if (tripCounter % 5 == 0) sem_post(&semExec[1]);
+            //if (tripCounter % 2 == 0) sem_post(&semExec[0]);
+            //if (tripCounter % 5 == 0) sem_post(&semExec[1]);
+            AO_EventTime__Tick();
             break ;
         }
         case SIGINT:

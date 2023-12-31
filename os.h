@@ -10,7 +10,6 @@
 #endif
 
 #include "utils.h"
-#include "clk.h"
 #include <pthread.h>
 #include <sched.h>
 #include <signal.h>
@@ -29,7 +28,8 @@ typedef enum e_StateOs
 
 /* TYPE DEFINITION */
 typedef void *(*t_osThreadhandler) (void *);
-typedef struct
+
+typedef struct s_osThreadParams
 {
     int                 idx;
     pthread_t           tid;
@@ -43,6 +43,7 @@ typedef struct
     struct sched_param  schedParam;
 }   t_osThreadParams;
 
+#include "clk.h"
 typedef struct s_osThreadTable
 {
     char                *name;
@@ -54,6 +55,8 @@ typedef struct s_osThreadTable
     t_osThreadhandler   func;
 }   t_osThreadTable;
 
+extern sigset_t sigSetDefault;
+#define OS_UNBLOCK_SIGNALS() sigprocmask(SIG_SETMASK, &sigSetDefault, NULL);\
 
 int     OS_CreateAllThreads(t_osThreadTable   *threadTable, int tableSize);
 void    OS_InitSchedInterrupt(struct sigaction *sa);
@@ -62,5 +65,6 @@ void    OS_InitAllThreadParams(t_osThreadTable   *threadTable, int tableSize);
 void    OS_Sequencer(void);
 void    OS_ShowThreadInfo(t_osThreadParams *params, char *color);
 void    OS_CallFunc(t_osThreadhandler func);
+void    OS_BlockSignals(void);
 
 #endif /* OS_H*/

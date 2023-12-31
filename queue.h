@@ -52,13 +52,17 @@ typedef struct sQueue
 
 
 #define QUEUE_MUTEX_LOCK(pQueue)\
-	while (((t_Queue *)(pQueue))->mtx){}\
-	((t_Queue *)(pQueue))->mtx = 1;\
+	while (1){\
+        if ( ((t_Queue *)(pQueue))->mtx == 0 ){\
+	        ((t_Queue *)(pQueue))->mtx += 1;\
+            break ;\
+        }\
+    }\
 
 
 	
 #define QUEUE_MUTEX_UNLOCK(pQueue)\
-	((t_Queue *)(pQueue))->mtx = 0;\
+	((t_Queue *)(pQueue))->mtx -= 1;\
 
 
 

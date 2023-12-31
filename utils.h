@@ -88,7 +88,7 @@ void UTILS_PrintInt(uint64_t nbr);
     if (!(condition))\
 	{\
         ft_printf((msg));\
-        kill(getpid(), SIGINT);\
+        kill(getpid(), SIGTERM);\
 	}\
 
 

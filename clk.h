@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <semaphore.h>
+#include "ao.h"
 
 
 #define CLK_CYCLE_MS (1)
