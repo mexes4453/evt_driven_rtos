@@ -66,7 +66,15 @@ void    *AO__EvtPump(void *pObj)
 		//UTILS_ASSERT((result == QUEUE_STATUS_SUCCESS), "Queue read failed\n")
             if (result == QUEUE_STATUS_SUCCESS)
             {
-		        me->dispatch(me, (t_Event *)pData);
+                //ft_printf("sig value: %d\n", ((t_Event *)pData)->sig);
+                if (((t_Event *)pData)->sig == SIG_SHUTDOWN) 
+                { 
+                    break ;
+                }
+                else
+                {
+		            me->dispatch(me, (t_Event *)pData);
+                }
             }
             else
             {

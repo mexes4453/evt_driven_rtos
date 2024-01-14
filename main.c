@@ -6,12 +6,12 @@
 
 int exitSig = 0;
 int execCounter = 0;
-int tripCounter = 0;
 //t_Queue              msgQueue;
 
 #ifdef __thread__
 //sem_t               semExec[APP_THREAD_MAX];
 t_colorLed          colorLed;
+t_ActiveObj         *AO_ColorLed = &(colorLed.super);
 
 #endif
 
@@ -19,9 +19,9 @@ int main (void)
 {
     static struct sigaction     sa;
     struct sigevent             sigevt;
-//    t_ActiveObj                 *AO_ColorLed = &(colorLed.super);
 
-    //QUEUE__Init(&msgQueue, false);
+    UTILS_ASSERT(AO_ColorLed, "invalid ptr to AO");
+
 
 #ifdef __thread__
     //int         idx = 0;
@@ -70,8 +70,6 @@ int main (void)
     while (1)
     {
         pause();
-        execCounter++;
-        tripCounter = (tripCounter + 1) % 10;
         //QUEUE__Put(&msgQueue, (void *)&execCounter);
         //ft_printf("Queue level: %d\n", QUEUE__GetLevel(&msgQueue));
         if (exitSig)
@@ -89,9 +87,9 @@ int main (void)
 #endif 
 #endif 
 
-            printf("Interrupt count: %d\n", execCounter);
-            printf("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
-            printf("max_prior: %d; min_prior: %d\n", sched_get_priority_max(SCHED_FIFO),
+            ft_printf("Interrupt count: %d\n", execCounter);
+            ft_printf("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
+            ft_printf("max_prior: %d; min_prior: %d\n", sched_get_priority_max(SCHED_FIFO),
                                                      sched_get_priority_min(SCHED_FIFO));
             break ;
         }
@@ -105,7 +103,7 @@ int main (void)
     /*  The threads are not expected to rejoin as they should run forever. */
     //pthread_join(blueThread, NULL);
     pthread_join(colorLed.super.thread, NULL);
-    //pthread_attr_destroy(&(colorLed.super.threadParams.attr));
+    pthread_attr_destroy(&(colorLed.super.threadParams.attr));
 #if 0
     for (idx = 0; idx < threadTableSize; idx++)
     {

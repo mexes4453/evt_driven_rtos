@@ -39,6 +39,7 @@ typedef struct sEvent
 enum enSignalsReserved
 {
     SIG_INIT,
+    SIG_SHUTDOWN,
     SIG_USER
 };
 

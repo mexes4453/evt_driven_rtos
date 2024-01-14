@@ -147,6 +147,7 @@ void colorLed_dispatch(t_colorLed * const me, t_Event const * const evt)
                         me->state = STATE_WHITE;
                         me->blinkCounter = 5;
                         ft_printf(COL_DEFAULT);
+                        AO_EventTime__Disable(&(me->timer));
                     }
                     else
                     {

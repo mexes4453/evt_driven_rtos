@@ -4,7 +4,6 @@
 static timer_t      timerId;
 extern int          exitSig;
 extern int          execCounter;
-extern int          tripCounter;
 
 extern sem_t        semExec[1];
 extern t_ActiveObj  *AO_ColorLed;
@@ -71,21 +70,19 @@ void    CLK_DisableTimer(void)
 
 void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
 {
-
+    static t_Event const evt = {SIG_SHUTDOWN};
+    ++execCounter;
     switch (sig)
     {
         case SIGALRM: /* call the sequencer within here */
         {
-            //UTILS_PrintTxt("clk sig - ");
-            //CLK_ShowTimeMs();
             CLK_ShowTimeMs();
-            //if (tripCounter % 2 == 0) sem_post(&semExec[0]);
-            //if (tripCounter % 5 == 0) sem_post(&semExec[1]);
             AO_EventTime__Tick();
             break ;
         }
         case SIGINT:
         {
+            AO__Post(AO_ColorLed, (void *)&evt);
             ++exitSig;
             break ;
         }
@@ -111,9 +108,4 @@ void    CLK_ShowTimeMs(void)
     if (res < 0) PERROR("clock_gettime\n", -2);
 
     UTILS_PRINTF("Time: %ds \n", ts.tv_sec);
-    /*
-    UTILS_PrintTxt("Time: ");
-    UTILS_PrintInt((uint64_t)ts.tv_sec);
-    UTILS_PrintTxt("s \n");
-    */
 }
