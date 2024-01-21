@@ -16,6 +16,7 @@
 #include <sys/sysinfo.h>
 #include <semaphore.h>
 #include <stdbool.h>
+#include "clk.h"
 
 /* ENUMERATION */
 typedef enum e_StateOs
@@ -43,7 +44,8 @@ typedef struct s_osThreadParams
     struct sched_param  schedParam;
 }   t_osThreadParams;
 
-#include "clk.h"
+#include "ao.h"
+
 typedef struct s_osThreadTable
 {
     char                *name;
@@ -56,7 +58,6 @@ typedef struct s_osThreadTable
 }   t_osThreadTable;
 
 extern sigset_t sigSetDefault;
-#define OS_UNBLOCK_SIGNALS() sigprocmask(SIG_SETMASK, &sigSetDefault, NULL);\
 
 int     OS_CreateAllThreads(t_osThreadTable   *threadTable, int tableSize);
 void    OS_InitSchedInterrupt(struct sigaction *sa);
@@ -66,5 +67,9 @@ void    OS_Sequencer(void);
 void    OS_ShowThreadInfo(t_osThreadParams *params, char *color);
 void    OS_CallFunc(t_osThreadhandler func);
 void    OS_BlockSignals(void);
+void    OS_ClkSigHandler(int sig, siginfo_t *siginfo, void *contextInfo);
+
+#define OS_SIGNALS_UNBLOCK() sigprocmask(SIG_SETMASK, &sigSetDefault, NULL);
+#define OS_SIGNALS_BLOCK() OS_BlockSignals();
 
 #endif /* OS_H*/

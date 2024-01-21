@@ -83,11 +83,10 @@ void UTILS_PrintInt(uint64_t nbr);
 
 
 
-/* Update this macro using minimalistic printf */
 #define UTILS_ASSERT(condition,msg)\
     if (!(condition))\
 	{\
-        ft_printf((msg));\
+        UTILS_PRINTF((msg));\
         kill(getpid(), SIGTERM);\
 	}\
 

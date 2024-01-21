@@ -2,11 +2,6 @@
 #include "clk.h"
 
 static timer_t      timerId;
-extern int          exitSig;
-extern int          execCounter;
-
-extern sem_t        semExec[1];
-extern t_ActiveObj  *AO_ColorLed;
 
 int CLK_InitTimer(struct sigevent *sigev)
 {
@@ -68,35 +63,6 @@ void    CLK_DisableTimer(void)
 
 
 
-void CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
-{
-    static t_Event const evt = {SIG_SHUTDOWN};
-    ++execCounter;
-    switch (sig)
-    {
-        case SIGALRM: /* call the sequencer within here */
-        {
-            CLK_ShowTimeMs();
-            AO_EventTime__Tick();
-            break ;
-        }
-        case SIGINT:
-        {
-            AO__Post(AO_ColorLed, (void *)&evt);
-            ++exitSig;
-            break ;
-        }
-        default:
-        {
-        }
-    }
-    if (siginfo && contextInfo)
-    {
-        //UTILS_PrintTxt("Sign info: ");
-        //UTILS_PrintInt((uint64_t)siginfo->si_signo);
-        //UTILS_PrintTxt("\n");
-    }
-}
 
 
 void    CLK_ShowTimeMs(void)

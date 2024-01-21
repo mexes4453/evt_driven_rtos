@@ -4,8 +4,8 @@
 #include "queue.h"
 #include "ao.h"
 
-int exitSig = 0;
-int execCounter = 0;
+int g_exitSig = 0;
+int g_execCounter = 0;
 //t_Queue              msgQueue;
 
 #ifdef __thread__
@@ -70,9 +70,9 @@ int main (void)
     while (1)
     {
         pause();
-        //QUEUE__Put(&msgQueue, (void *)&execCounter);
+        //QUEUE__Put(&msgQueue, (void *)&g_execCounter);
         //ft_printf("Queue level: %d\n", QUEUE__GetLevel(&msgQueue));
-        if (exitSig)
+        if (g_exitSig)
         {   
 
 
@@ -87,9 +87,9 @@ int main (void)
 #endif 
 #endif 
 
-            ft_printf("Interrupt count: %d\n", execCounter);
-            ft_printf("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
-            ft_printf("max_prior: %d; min_prior: %d\n", sched_get_priority_max(SCHED_FIFO),
+            UTILS_PRINTF("Interrupt count: %d\n", g_execCounter);
+            UTILS_PRINTF("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
+            UTILS_PRINTF("max_prior: %d; min_prior: %d\n", sched_get_priority_max(SCHED_FIFO),
                                                      sched_get_priority_min(SCHED_FIFO));
             break ;
         }

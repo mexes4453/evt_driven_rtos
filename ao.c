@@ -59,9 +59,9 @@ void    *AO__EvtPump(void *pObj)
         {
         */
             //ft_printf("EVT PUMP QUEUE -> state: %d, entries: %d\n", me->xEvtQueue.state, QUEUE__GetLevel(&(me->xEvtQueue)));
-            OS_BlockSignals();
+            OS_SIGNALS_BLOCK();
 		    result = QUEUE__Get(&(me->xEvtQueue), &pData);
-            OS_UNBLOCK_SIGNALS()
+            OS_SIGNALS_UNBLOCK();
             //ft_printf("EVT PUMP get QUEUE -> state: %d, entries: %d\n", me->xEvtQueue.state, QUEUE__GetLevel(&(me->xEvtQueue)));
 		//UTILS_ASSERT((result == QUEUE_STATUS_SUCCESS), "Queue read failed\n")
             if (result == QUEUE_STATUS_SUCCESS)

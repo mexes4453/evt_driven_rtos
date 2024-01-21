@@ -59,7 +59,7 @@ void colorLed_dispatch(t_colorLed * const me, t_Event const * const evt)
     if (evt->sig == SIG_INIT)
     {
         me->state = STATE_WHITE;
-        me->blinkCounter = 10;
+        me->blinkCounter = 3;
         ft_printf(COL_DEFAULT);
         AO_EventTime__Enable(&(me->timer), 1, 1);
     }

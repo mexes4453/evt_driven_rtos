@@ -7,7 +7,6 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <semaphore.h>
-#include "ao.h"
 
 
 #define CLK_CYCLE_MS (1)
@@ -16,7 +15,6 @@
 
 int     CLK_InitTimer(struct sigevent *sigev);
 void    CLK_DisableTimer(void);
-void    CLK_SigHandler(int sig, siginfo_t *siginfo, void *contextInfo);
 void    CLK_ShowTimeMs(void);
 
 

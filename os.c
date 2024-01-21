@@ -1,12 +1,17 @@
 #include "os.h"
 //extern struct sigaction    sa;
+extern int          g_exitSig;
+extern int          g_execCounter;
+extern t_ActiveObj  *AO_ColorLed;
+
+static t_Event const evtShutdown = {SIG_SHUTDOWN};
 
 
 void    OS_InitSchedInterrupt(struct sigaction *sa)
 {
     
     sigemptyset(&(sa->sa_mask));
-    sa->sa_sigaction =  CLK_SigHandler;
+    sa->sa_sigaction =  OS_ClkSigHandler;
     sa->sa_flags = SA_SIGINFO;
     sigaction(SIGALRM, sa, NULL);
     sigaction(SIGINT, sa, NULL);
@@ -91,19 +96,6 @@ void    OS_ShowThreadInfo(t_osThreadParams *params, char *color)
                 sched_getcpu(), 
                 params->prio,
                 COL_DEFAULT);
-/*
-    UTILS_PrintTxt(color);
-    UTILS_PrintTxt("-- ");
-    UTILS_PrintTxt(params->name);
-    UTILS_PrintTxt(" -- ID(");
-    UTILS_PrintInt(tid);
-    UTILS_PrintTxt(") - CPU(");
-    UTILS_PrintInt((uint64_t)sched_getcpu());
-    UTILS_PrintTxt(") - PRIO(");
-    UTILS_PrintInt((uint64_t)params->prio);
-    UTILS_PrintTxt(")\n");
-    UTILS_PrintTxt(COL_DEFAULT);
-*/
 }
 
 void    OS_CallFunc(t_osThreadhandler func)
@@ -120,4 +112,32 @@ void    OS_BlockSignals(void)
     sigemptyset(&sigSetBlock);
     sigaddset(&sigSetBlock, SIGALRM);
     sigprocmask(SIG_BLOCK, &sigSetBlock, &sigSetDefault);
+}
+
+
+
+void OS_ClkSigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
+{
+    ++g_execCounter;
+    switch (sig)
+    {
+        case SIGALRM: /* call the sequencer within here */
+        {
+            CLK_ShowTimeMs();
+            AO_EventTime__Tick(); /* Check all armed timers for active objects */
+            break ;
+        }
+        case SIGINT:
+        {
+            AO__Post(AO_ColorLed, (void *)&evtShutdown);
+            ++g_exitSig;
+            break ;
+        }
+        default:
+        {
+        }
+    }
+    if (siginfo && contextInfo)
+    {
+    }
 }
