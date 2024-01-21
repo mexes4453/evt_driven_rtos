@@ -20,6 +20,7 @@ int main (void)
     static struct sigaction     sa;
     struct sigevent             sigevt;
 
+
     UTILS_ASSERT(AO_ColorLed, "invalid ptr to AO");
 
 
@@ -86,7 +87,7 @@ int main (void)
             }
 #endif 
 #endif 
-
+            UTILS_PRINTF(COL_DEFAULT);
             UTILS_PRINTF("Interrupt count: %d\n", g_execCounter);
             UTILS_PRINTF("Total: %d; available: %d\n", get_nprocs_conf(), get_nprocs());
             UTILS_PRINTF("max_prior: %d; min_prior: %d\n", sched_get_priority_max(SCHED_FIFO),

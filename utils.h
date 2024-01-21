@@ -86,7 +86,7 @@ void UTILS_PrintInt(uint64_t nbr);
 #define UTILS_ASSERT(condition,msg)\
     if (!(condition))\
 	{\
-        UTILS_PRINTF((msg));\
+        UTILS_PRINTF("%s%s%s\n", COL_RED, (msg), COL_DEFAULT);\
         kill(getpid(), SIGTERM);\
 	}\
 

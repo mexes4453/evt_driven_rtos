@@ -172,3 +172,4 @@ void colorLed_Ctor(t_colorLed * const me, int cpuIdx, int prior)
     AO__Ctor(&(me->super), (f_EventHandler)colorLed_dispatch, cpuIdx, prior);
     AO_EventTime__Ctor(&(me->timer), SIG_TIMER, &(me->super));
 }
+
