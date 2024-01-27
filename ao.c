@@ -42,7 +42,6 @@ void    *AO__EvtPump(void *pObj)
 	t_enStatusQueue   result = AO_STATUS_FAIL;
     t_Event const     initEvt = { SIG_INIT };
     //int readstart = 20;
-	
     me->dispatch(me, &initEvt);
 	
 	while (AO_TRUE)
@@ -78,6 +77,7 @@ void    *AO__EvtPump(void *pObj)
             }
             else
             {
+                /* implement blocking here or low power code or yield the cpu */
                 //ft_printf("Queue read status: %d\n", result);
             }
 

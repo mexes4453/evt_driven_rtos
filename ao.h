@@ -14,7 +14,9 @@ typedef enum enStatusActiveObj
 {
 	AO_STATUS_FAIL = -1,
 	AO_STATUS_SUCCESS,
-	AO_STATUS_IGNORED
+	AO_STATUS_IGNORED,
+    AO_STATUS_TRANSIT,
+    AO_STATUS_HANDLED
 }   t_enStatusActiveObj;
 
 
@@ -39,7 +41,10 @@ typedef struct sEvent
 enum enSignalsReserved
 {
     SIG_INIT,
+    SIG_ENTRY,
+    SIG_EXIT,
     SIG_SHUTDOWN,
+    SIG_TRIGGER_CTRL_D,              /* This signal triggers the LED color count down */
     SIG_USER
 };
 

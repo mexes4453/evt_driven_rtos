@@ -5,6 +5,8 @@ extern int          g_execCounter;
 extern t_ActiveObj  *AO_ColorLed;
 
 static t_Event const evtShutdown = {SIG_SHUTDOWN};
+static t_Event const evtAlarmTrigger = { SIG_TRIGGER_CTRL_D };
+
 
 
 void    OS_InitSchedInterrupt(struct sigaction *sa)
@@ -15,6 +17,7 @@ void    OS_InitSchedInterrupt(struct sigaction *sa)
     sa->sa_flags = SA_SIGINFO;
     sigaction(SIGALRM, sa, NULL);
     sigaction(SIGINT, sa, NULL);
+    sigaction(SIGTSTP, sa, NULL);
 }
 
 int OS_CreateAllThreads(t_osThreadTable   *threadTable, int tableSize)
@@ -37,6 +40,8 @@ int OS_CreateAllThreads(t_osThreadTable   *threadTable, int tableSize)
     }
     return (res);
 }
+
+
 
 
 void    OS_InitThreadParams(t_osThreadParams *threadParam, int cpuIdx, int prio)
@@ -127,14 +132,20 @@ void OS_ClkSigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
             AO_EventTime__Tick(); /* Check all armed timers for active objects */
             break ;
         }
-        case SIGINT:
+        case SIGINT: /* signal is used to shutdown application gracefully */
         {
             AO__Post(AO_ColorLed, (void *)&evtShutdown);
             ++g_exitSig;
             break ;
         }
+        case SIGTSTP: /* signal is used to trigger alarm led in application */
+        {
+            AO__Post(AO_ColorLed, (void *)&evtAlarmTrigger);
+            break ;
+        }
         default:
         {
+            UTILS_PRINTF("no response");
         }
     }
     if (siginfo && contextInfo)
