@@ -4,8 +4,8 @@ extern int          g_exitSig;
 extern int          g_execCounter;
 extern t_ActiveObj  *AO_ColorLed;
 
-static t_Event const evtShutdown = {SIG_SHUTDOWN};
-static t_Event const evtAlarmTrigger = { SIG_TRIGGER_CTRL_D };
+static t_event const evtShutdown = {SIG_SHUTDOWN};
+static t_event const evtAlarmTrigger = { SIG_TRIGGER_CTRL_Z };
 
 
 

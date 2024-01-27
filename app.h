@@ -5,6 +5,7 @@
 #include "os.h"
 #include "queue.h"
 #include "ao.h"
+#include "fsm.h"
 
 #define APP_THREAD_MAX (OS_THREADNUM)
 
@@ -15,7 +16,6 @@
 #define APP_YELLOW  "YELLOW"
 #define APP_MAGENTA "MAGENTA"
 #define COLORLED_ALARMTICKCOUNT (20)
-#define TRANS(_target) (me->state=_target, AO_STATUS_TRANSIT)
 
 enum enAppSignals
 {
@@ -25,27 +25,24 @@ enum enAppSignals
 
 typedef struct s_colorLed t_colorLed;
 
-typedef t_enStatusActiveObj (*f_StateHandler)(t_colorLed * const me, t_Event const * const evt);
 
 struct s_colorLed
 {
     t_ActiveObj    super;  /* inheritance */
-    t_EventTime    timer;
+    t_eventTime    timer;
     int            blinkCounter;
-    f_StateHandler state;
 };
 
 void                APP_LedOn(char *colorCodeTxt, char * colorTxt);
 void                APP_LedOff(char *colorCodeTxt, char * colorTxt);
 void                colorLed_Ctor(t_colorLed * const me, int cpuIdx, int prior);
-void                colorLed_dispatch(t_colorLed * const me, t_Event const * const evt);
-t_enStatusActiveObj colorLed__Initial(t_colorLed * const me, t_Event const * const evt);
-t_enStatusActiveObj colorLed__WaitForTrigger(t_colorLed * const me, t_Event const * const evt);
-t_enStatusActiveObj colorLed__AlarmLow(t_colorLed * const me, t_Event const * const evt);
-t_enStatusActiveObj colorLed__AlarmMedium(t_colorLed * const me, t_Event const * const evt);
-t_enStatusActiveObj colorLed__AlarmHigh(t_colorLed * const me, t_Event const * const evt);
-t_enStatusActiveObj colorLed__AlarmExplode(t_colorLed * const me, t_Event const * const evt);
-t_enStatusActiveObj colorLed__Pause(t_colorLed * const me, t_Event const * const evt);
+t_enStatusFsm colorLed__Initial(t_colorLed * const me, t_event const * const evt);
+t_enStatusFsm colorLed__WaitForTrigger(t_colorLed * const me, t_event const * const evt);
+t_enStatusFsm colorLed__AlarmLow(t_colorLed * const me, t_event const * const evt);
+t_enStatusFsm colorLed__AlarmMedium(t_colorLed * const me, t_event const * const evt);
+t_enStatusFsm colorLed__AlarmHigh(t_colorLed * const me, t_event const * const evt);
+t_enStatusFsm colorLed__AlarmExplode(t_colorLed * const me, t_event const * const evt);
+t_enStatusFsm colorLed__Pause(t_colorLed * const me, t_event const * const evt);
 
 
 #endif // OS_H

@@ -1,10 +1,10 @@
 #include "ao.h"
 
-t_enStatusActiveObj AO__Ctor(t_ActiveObj * const me, f_EventHandler dispatch, int cpuIdx, int prior)
+t_enStatusActiveObj AO__Ctor(t_ActiveObj * const me, f_StateHandler state_init, int cpuIdx, int prior)
 {
 	t_enStatusActiveObj result = AO_STATUS_FAIL;
 
-    me->dispatch = dispatch;                /* State-machine: Assign state-machine func */
+    FSM__Ctor(&(me->fsm), state_init);      /* State-machine: Assign state-machine func */
     QUEUE__Init(&(me->xEvtQueue), false);   /* Event queue:   Initialise the event queue */
 
     /* thread: initialise thread parameters */
@@ -40,9 +40,10 @@ void    *AO__EvtPump(void *pObj)
 	t_ActiveObj       *me = (t_ActiveObj *)pObj;
 	void	          *pData = NULL;
 	t_enStatusQueue   result = AO_STATUS_FAIL;
-    t_Event const     initEvt = { SIG_INIT };
-    //int readstart = 20;
-    me->dispatch(me, &initEvt);
+    t_event           const sigEvt = { SIG_INIT };
+    
+    /* Initialise the finite state machine */
+    FSM__Init(&(me->fsm), &sigEvt);
 	
 	while (AO_TRUE)
 	{
@@ -65,14 +66,14 @@ void    *AO__EvtPump(void *pObj)
 		//UTILS_ASSERT((result == QUEUE_STATUS_SUCCESS), "Queue read failed\n")
             if (result == QUEUE_STATUS_SUCCESS)
             {
-                //ft_printf("sig value: %d\n", ((t_Event *)pData)->sig);
-                if (((t_Event *)pData)->sig == SIG_SHUTDOWN) 
+                //ft_printf("sig value: %d\n", ((t_event *)pData)->sig);
+                if (((t_event *)pData)->sig == SIG_SHUTDOWN) 
                 { 
                     break ;
                 }
                 else
                 {
-		            me->dispatch(me, (t_Event *)pData);
+                  FSM__Dispatch(&(me->fsm), (t_event *)pData);
                 }
             }
             else
@@ -90,12 +91,12 @@ void    *AO__EvtPump(void *pObj)
 
 
 /* Buffer to store pointer to timers */
-static  t_EventTime    *l_evtTimers[AO_TOTAL_TIME_EVT]; 
+static  t_eventTime    *l_evtTimers[AO_TOTAL_TIME_EVT]; 
 
 /* Stores number of all timers object created in the application */
 static  uint8_t        l_evtTimeCnt = 0;   
 
-void    AO_EventTime__Ctor(t_EventTime * const me, t_signal sig, t_ActiveObj * const ao)
+void    AO_EventTime__Ctor(t_eventTime * const me, t_signal sig, t_ActiveObj * const ao)
 {
     me->super.sig = sig;
     me->ao = ao;
@@ -107,19 +108,19 @@ void    AO_EventTime__Ctor(t_EventTime * const me, t_signal sig, t_ActiveObj * c
     ++l_evtTimeCnt;
 }
 
-void    AO_EventTime__Enable(t_EventTime *const me, int tickCount, int interval)
+void    AO_EventTime__Enable(t_eventTime *const me, int tickCount, int interval)
 {
     me->tickCounter = tickCount;
     me->interval = interval;
 }
-void    AO_EventTime__Disable(t_EventTime *const me)
+void    AO_EventTime__Disable(t_eventTime *const me)
 {
     me->tickCounter = 0;
 }
 
 void    AO_EventTime__Tick(void)
 {
-    t_EventTime  *t;
+    t_eventTime  *t;
     uint8_t      idx;
 
     t = NULL;

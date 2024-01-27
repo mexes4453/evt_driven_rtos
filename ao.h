@@ -7,6 +7,8 @@
 #include "os.h"
 #include "utils.h"
 #include "queue.h"
+#include "fsm.h"
+#include "evt.h"
 
 #define AO_TRUE (1)
 
@@ -14,39 +16,10 @@ typedef enum enStatusActiveObj
 {
 	AO_STATUS_FAIL = -1,
 	AO_STATUS_SUCCESS,
-	AO_STATUS_IGNORED,
-    AO_STATUS_TRANSIT,
-    AO_STATUS_HANDLED
 }   t_enStatusActiveObj;
 
 
 
-/* define data type for signal of type int16_t */
-typedef unsigned int t_signal;      
-
-
-
-/** 
-  * Event base class 
-  * All other events will be a subclass of this base class.
-  * They would add their own additional properties and method.
-  */
-typedef struct sEvent
-{
-    t_signal sig;
-}   t_Event; 
-
-
-
-enum enSignalsReserved
-{
-    SIG_INIT,
-    SIG_ENTRY,
-    SIG_EXIT,
-    SIG_SHUTDOWN,
-    SIG_TRIGGER_CTRL_D,              /* This signal triggers the LED color count down */
-    SIG_USER
-};
 
 
 /** 
@@ -57,32 +30,22 @@ enum enSignalsReserved
 typedef struct sActiveObj t_ActiveObj;
 
 
-/**
- * @brief 
- * hook function prototype for handling the events.
- * This prototype function would contain the state-machine which would
- * discriminate based on the event type and perform corresponding action
- * and update the active object state if state transition occurs due to
- * executed action.
- */
-typedef void (*f_EventHandler)(t_ActiveObj * const me, t_Event const * const evt);
-
 
 /**
  * @brief 
  * Active object class: thread + queue + statemachine
  * 
  */
-typedef struct sActiveObj
+struct sActiveObj
 {
+    t_fsm               fsm;
 	pthread_t           thread;
 	t_Queue		        xEvtQueue;
-	f_EventHandler	    dispatch;
     t_osThreadParams    threadParams;
-}   t_ActiveObj;
+};
 
 
-t_enStatusActiveObj    AO__Ctor(t_ActiveObj * const me, f_EventHandler dispatch, int cpuIdx, int prior);
+t_enStatusActiveObj    AO__Ctor(t_ActiveObj * const me, f_StateHandler state_init, int cpuIdx, int prior);
 t_enStatusActiveObj    AO__Post(t_ActiveObj * const me, void *pData);
 void                   *AO__EvtPump(void *pObj);
 
@@ -91,16 +54,16 @@ void                   *AO__EvtPump(void *pObj);
 #define AO_TOTAL_TIME_EVT (10)
 typedef struct sEventTime
 {
-    t_Event     super;
+    t_event     super;
     t_ActiveObj *ao;
     int         tickCounter;
     bool        interval;
-} t_EventTime;
+} t_eventTime;
 
 
-void    AO_EventTime__Ctor(t_EventTime * const me, t_signal sig, t_ActiveObj * const ao);
-void    AO_EventTime__Enable(t_EventTime *const me, int tickCount, int interval);
-void    AO_EventTime__Disable(t_EventTime *const me);
+void    AO_EventTime__Ctor(t_eventTime * const me, t_signal sig, t_ActiveObj * const ao);
+void    AO_EventTime__Enable(t_eventTime *const me, int tickCount, int interval);
+void    AO_EventTime__Disable(t_eventTime *const me);
 void    AO_EventTime__Tick(void);
 
 

@@ -1,5 +1,5 @@
 
-SRCS:=  clk.c utils.c queue.c ao.c os.c app.c  main.c 
+SRCS:=  clk.c utils.c queue.c ao.c os.c app.c fsm.c main.c 
 
 OBJS:= $(SRCS:.c=.o)
 MSG = 
