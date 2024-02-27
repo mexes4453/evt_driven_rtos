@@ -108,15 +108,23 @@ void    AO_EventTime__Ctor(t_eventTime * const me, t_signal sig, t_ActiveObj * c
     ++l_evtTimeCnt;
 }
 
+
+
 void    AO_EventTime__Enable(t_eventTime *const me, int tickCount, int interval)
 {
     me->tickCounter = tickCount;
     me->interval = interval;
 }
+
+
+
 void    AO_EventTime__Disable(t_eventTime *const me)
 {
     me->tickCounter = 0;
+    me->interval = 0;
 }
+
+
 
 void    AO_EventTime__Tick(void)
 {

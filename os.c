@@ -145,7 +145,7 @@ void OS_ClkSigHandler(int sig, siginfo_t *siginfo, void *contextInfo)
         }
         default:
         {
-            UTILS_PRINTF("no response");
+            UTILS_PRINTF("no responses");
         }
     }
     if (siginfo && contextInfo)

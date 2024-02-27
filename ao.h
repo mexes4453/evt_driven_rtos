@@ -21,7 +21,6 @@ typedef enum enStatusActiveObj
 
 
 
-
 /** 
  * Forward declaration of active object class
  * This allows for event handler hook function prototyping prior to its
